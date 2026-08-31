@@ -1,0 +1,26 @@
+id: py-fastapi-tenant-leak
+title: FastAPI invoice endpoint leaks cross-tenant rows
+stack: [Python, FastAPI]
+defect_category: tenant data leakage
+difficulty: hard
+security_implications: Cross-tenant invoice disclosure violates authorization boundaries and can expose billing data.
+expected_behavior:
+  - Only open invoices belonging to the authenticated user's tenant are returned.
+  - Closed invoices remain excluded.
+  - Tenant identifiers are treated as opaque values, not prefixes.
+sandbox:
+  image: rescuebench/python:local
+  cpus: 0.75
+  memory: 384m
+  pids: 64
+  timeout_seconds: 30
+checks:
+  - {name: compile, stage: build, command: [python, -m, compileall, -q, .], weight: 10}
+  - {name: visible tenant isolation, stage: public, command: [python, tests/test_public.py], weight: 20}
+  - {name: hidden tenant matrix, stage: hidden, command: [python, /grader/grader.py, hidden], weight: 35}
+  - {name: authorization boundary, stage: security, command: [python, /grader/grader.py, security], weight: 15}
+  - {name: ruff, stage: quality, command: [ruff, check, .], weight: 10}
+  - {name: adversarial tenant ids, stage: mutation, command: [python, /grader/grader.py, mutation], weight: 10}
+  - {name: closed invoice regression, stage: regression, command: [python, /grader/grader.py, regression], weight: 0}
+changed_lines_budget: 8
+tags: [authorization, multi-tenant, fastapi]

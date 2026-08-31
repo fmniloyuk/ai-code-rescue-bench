@@ -1,0 +1,13 @@
+--- a/reader.py
++++ b/reader.py
+@@ -3,7 +3,6 @@ from pathlib import Path
+ 
+ 
+ async def stream_chunks(path: Path, sender: Callable[[bytes], Awaitable[None]]) -> None:
+-    file = open(path, "rb")
+-    while chunk := file.read(4):
+-        await sender(chunk)
+-    file.close()
++    with open(path, "rb") as file:
++        while chunk := file.read(4):
++            await sender(chunk)

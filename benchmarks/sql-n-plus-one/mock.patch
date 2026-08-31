@@ -1,0 +1,23 @@
+--- a/report.py
++++ b/report.py
+@@ -7,13 +7,15 @@ class Database(Protocol):
+ 
+ 
+ def customer_totals(db: Database, customer_ids: list[str]) -> dict[str, int]:
+-    totals: dict[str, int] = {}
+-    for customer_id in customer_ids:
+-        row = db.fetch_one(
+-            "SELECT COALESCE(SUM(total_cents), 0) FROM orders WHERE customer_id = %s",
+-            (customer_id,),
+-        )
+-        totals[customer_id] = row[0]
++    if not customer_ids:
++        return {}
++    rows = db.fetch_all(
++        "SELECT customer_id, COALESCE(SUM(total_cents), 0) "
++        "FROM orders WHERE customer_id = ANY(%s) GROUP BY customer_id",
++        (customer_ids,),
++    )
++    totals = {customer_id: 0 for customer_id in customer_ids}
++    totals.update(rows)
+     return totals

@@ -1,0 +1,22 @@
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -1,12 +1,19 @@
+ services:
+   api:
+     image: example/api:local
+     depends_on:
+-      - db
++      db:
++        condition: service_healthy
+   db:
+     image: postgres:17
+     environment:
+       POSTGRES_USER: app
+       POSTGRES_PASSWORD: app
+       POSTGRES_DB: app
++    healthcheck:
++      test: ["CMD-SHELL", "pg_isready -U app -d app"]
++      interval: 5s
++      timeout: 3s
++      retries: 5
++      start_period: 5s

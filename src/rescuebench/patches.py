@@ -52,7 +52,7 @@ def apply_patch_in_sandbox(
     workspace: Path,
     patch_file: Path,
 ) -> None:
-    patcher_spec = spec.model_copy(update={"image": "alpine/git:2.47.2", "timeout_seconds": 30})
+    patcher_spec = spec.model_copy(update={"image": "rescuebench/patcher:local", "timeout_seconds": 30})
     mounts = [
         Mount(workspace, "/workspace", read_only=False),
         Mount(patch_file, "/attempt.patch", read_only=True),

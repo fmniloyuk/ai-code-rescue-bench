@@ -1,9 +1,9 @@
+#!/usr/bin/env python3
 from __future__ import annotations
 
 import json
 import sys
 from pathlib import Path
-
 
 EXPECTED_CASES = set(sys.argv[1:])
 if not EXPECTED_CASES:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Literal
 
@@ -42,7 +42,7 @@ class CaseManifest(BaseModel):
     tags: list[str] = []
 
     @model_validator(mode="after")
-    def validate_weights(self) -> "CaseManifest":
+    def validate_weights(self) -> CaseManifest:
         weighted = sum(check.weight for check in self.checks if check.stage != "regression")
         if abs(weighted - 100.0) > 0.001:
             raise ValueError(f"non-regression check weights must total 100, got {weighted}")
@@ -90,7 +90,7 @@ class EvaluationResult(BaseModel):
     run_id: str
     case_id: str
     mode: Literal["human", "agent"]
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     provider: str | None = None
     model: str | None = None
     prompt_id: str | None = None

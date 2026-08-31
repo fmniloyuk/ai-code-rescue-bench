@@ -32,6 +32,8 @@ def validate_patch_paths(patch: str) -> None:
             raise ValueError(f"patch contains unsafe path: {raw}")
         if path.parts and path.parts[0] in {".git", ".github"}:
             raise ValueError(f"patch may not modify benchmark control path: {raw}")
+        if "tests" in path.parts or any(part.startswith("test_") for part in path.parts):
+            raise ValueError(f"patch may not modify benchmark tests: {raw}")
 
 
 def changed_lines(patch: str) -> int:

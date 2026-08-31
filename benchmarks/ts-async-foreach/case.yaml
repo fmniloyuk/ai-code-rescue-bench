@@ -1,0 +1,21 @@
+id: ts-async-foreach
+title: Async forEach returns before invoice settlement completes
+stack: [Node.js, TypeScript]
+defect_category: async misuse
+difficulty: hard
+security_implications: null
+expected_behavior:
+  - The function resolves only after every successful charge finishes.
+  - Settled invoice ids preserve input order.
+  - Processing stops after the first failed charge instead of starting later charges.
+sandbox: {image: rescuebench/node:local, cpus: 0.75, memory: 384m, pids: 96, timeout_seconds: 30}
+checks:
+  - {name: typecheck, stage: build, command: [tsc, --noEmit], weight: 10}
+  - {name: visible await behavior, stage: public, command: [tsx, tests/public.ts], weight: 20}
+  - {name: failure sequencing, stage: hidden, command: [tsx, /grader/grader.ts, hidden], weight: 35}
+  - {name: side-effect boundary, stage: security, command: [tsx, /grader/grader.ts, security], weight: 15}
+  - {name: compiler quality, stage: quality, command: [tsc, --noEmit, --pretty, 'false'], weight: 10}
+  - {name: ordering mutation, stage: mutation, command: [tsx, /grader/grader.ts, mutation], weight: 10}
+  - {name: empty input regression, stage: regression, command: [tsx, /grader/grader.ts, regression], weight: 0}
+changed_lines_budget: 12
+tags: [typescript, promises, side-effects]

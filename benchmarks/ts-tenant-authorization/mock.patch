@@ -1,0 +1,9 @@
+--- a/src/authorization.ts
++++ b/src/authorization.ts
+@@ -2,5 +2,6 @@ export type User = { id: string; tenantId: string; role: "admin" | "member" };
+ export type Project = { id: string; tenantId: string; ownerId: string };
+ 
+ export function canEditProject(user: User, project: Project): boolean {
++  if (user.tenantId !== project.tenantId) return false;
+   return user.role === "admin" || project.ownerId === user.id;
+ }

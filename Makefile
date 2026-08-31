@@ -6,7 +6,7 @@ install:
 lint:
 	ruff check src tests
 
- test:
+test:
 	pytest
 
 images:

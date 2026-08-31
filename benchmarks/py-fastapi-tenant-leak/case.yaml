@@ -19,7 +19,10 @@ checks:
   - {name: visible tenant isolation, stage: public, command: [python, tests/test_public.py], weight: 20}
   - {name: hidden tenant matrix, stage: hidden, command: [python, /grader/grader.py, hidden], weight: 35}
   - {name: authorization boundary, stage: security, command: [python, /grader/grader.py, security], weight: 15}
-  - {name: ruff, stage: quality, command: [ruff, check, .], weight: 10}
+  - {name: ruff, stage: quality, command: [ruff, check, .], weight: 3}
+  - {name: mypy, stage: quality, command: [mypy, app.py, --ignore-missing-imports], weight: 2}
+  - {name: semgrep, stage: quality, command: [semgrep, --error, --quiet, --config, /grader/semgrep.yml, app.py], weight: 3}
+  - {name: tree-sitter parse, stage: quality, command: [python, /opt/rescuebench/tree_sitter_summary.py, ., --language, python], weight: 2}
   - {name: adversarial tenant ids, stage: mutation, command: [python, /grader/grader.py, mutation], weight: 10}
   - {name: closed invoice regression, stage: regression, command: [python, /grader/grader.py, regression], weight: 0}
 changed_lines_budget: 8

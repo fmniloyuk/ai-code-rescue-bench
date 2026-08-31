@@ -1,0 +1,6 @@
+rules:
+  - id: unscoped-open-invoice-list
+    message: Open invoice selection is missing an explicit tenant boundary.
+    severity: ERROR
+    languages: [python]
+    pattern: 'return [invoice for invoice in repo.invoices if invoice.status == "open"]'

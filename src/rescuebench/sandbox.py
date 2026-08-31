@@ -72,8 +72,10 @@ class DockerSandbox:
             "NO_COLOR=1",
         ]
         for mount in mounts:
-            suffix = ":ro" if mount.read_only else ":rw"
-            argv.extend(["--mount", f"type=bind,src={mount.source.resolve()},dst={mount.target}{suffix}"])
+            mount_arg = f"type=bind,src={mount.source.resolve()},dst={mount.target}"
+            if mount.read_only:
+                mount_arg += ",readonly"
+            argv.extend(["--mount", mount_arg])
         argv.append(image or spec.image)
         argv.extend(command)
         return argv

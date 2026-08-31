@@ -1,0 +1,21 @@
+id: py-webhook-idempotency
+title: Webhook retry duplicates a financial side effect
+stack: [Python, webhooks]
+defect_category: webhook replay bug
+difficulty: expert
+security_implications: A crash after a successful credit but before acknowledgement can credit the same account more than once.
+expected_behavior:
+  - The downstream financial operation receives the webhook event id as its idempotency key.
+  - A replay after local acknowledgement failure does not duplicate the downstream credit.
+  - Successful processing still records the event locally.
+sandbox: {image: rescuebench/python:local, cpus: 0.75, memory: 384m, pids: 64, timeout_seconds: 30}
+checks:
+  - {name: compile, stage: build, command: [python, -m, compileall, -q, .], weight: 10}
+  - {name: visible crash replay, stage: public, command: [python, tests/test_public.py], weight: 20}
+  - {name: repeated delivery, stage: hidden, command: [python, /grader/grader.py, hidden], weight: 35}
+  - {name: stable downstream key, stage: security, command: [python, /grader/grader.py, security], weight: 15}
+  - {name: ruff, stage: quality, command: [ruff, check, .], weight: 10}
+  - {name: many replay mutation, stage: mutation, command: [python, /grader/grader.py, mutation], weight: 10}
+  - {name: acknowledgement regression, stage: regression, command: [python, /grader/grader.py, regression], weight: 0}
+changed_lines_budget: 8
+tags: [webhook, idempotency, payments]

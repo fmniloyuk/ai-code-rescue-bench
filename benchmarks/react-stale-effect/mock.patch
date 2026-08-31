@@ -1,0 +1,11 @@
+--- a/src/UserPanel.tsx
++++ b/src/UserPanel.tsx
+@@ -16,7 +16,7 @@ export function UserPanel({ userId, fetchUser }: Props) {
+     return () => {
+       active = false;
+     };
+-  }, []);
++  }, [userId, fetchUser]);
+ 
+   return <div>{name}</div>;
+ }

@@ -1,0 +1,22 @@
+id: ts-tenant-authorization
+title: Admin role bypasses tenant boundary in project authorization
+stack: [Node.js, TypeScript]
+defect_category: broken authorization
+difficulty: hard
+security_implications: An admin from one tenant can edit projects belonging to another tenant.
+expected_behavior:
+  - Tenant equality is required before any role or ownership grant.
+  - Same-tenant admins may edit any project in their tenant.
+  - Same-tenant project owners may edit their own project.
+sandbox: {image: rescuebench/node:local, cpus: 0.5, memory: 320m, pids: 64, timeout_seconds: 30}
+checks:
+  - {name: typecheck, stage: build, command: [tsc, --noEmit], weight: 10}
+  - {name: visible cross-tenant admin, stage: public, command: [tsx, tests/public.ts], weight: 20}
+  - {name: role ownership matrix, stage: hidden, command: [tsx, /grader/grader.ts, hidden], weight: 35}
+  - {name: tenant boundary, stage: security, command: [tsx, /grader/grader.ts, security], weight: 15}
+  - {name: TypeScript compiler, stage: quality, command: [tsc, --noEmit, --pretty, 'false'], weight: 5}
+  - {name: ESLint, stage: quality, command: [eslint, --config, /grader/eslint.config.mjs, src/authorization.ts], weight: 5}
+  - {name: adversarial ids, stage: mutation, command: [tsx, /grader/grader.ts, mutation], weight: 10}
+  - {name: same-tenant regression, stage: regression, command: [tsx, /grader/grader.ts, regression], weight: 0}
+changed_lines_budget: 8
+tags: [authorization, multi-tenant, typescript]

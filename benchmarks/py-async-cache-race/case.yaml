@@ -1,0 +1,21 @@
+id: py-async-cache-race
+title: Async cache stampede under concurrent misses
+stack: [Python, asyncio]
+defect_category: race condition
+difficulty: expert
+security_implications: null
+expected_behavior:
+  - Concurrent misses for the same key invoke the loader exactly once.
+  - Different keys may load concurrently.
+  - Cached values are returned without invoking the loader again.
+sandbox: {image: rescuebench/python:local, cpus: 1.0, memory: 384m, pids: 96, timeout_seconds: 30}
+checks:
+  - {name: compile, stage: build, command: [python, -m, compileall, -q, .], weight: 10}
+  - {name: visible single-flight test, stage: public, command: [python, tests/test_public.py], weight: 20}
+  - {name: same-key contention, stage: hidden, command: [python, /grader/grader.py, hidden], weight: 35}
+  - {name: key isolation, stage: security, command: [python, /grader/grader.py, security], weight: 15}
+  - {name: ruff, stage: quality, command: [ruff, check, .], weight: 10}
+  - {name: contention stress, stage: mutation, command: [python, /grader/grader.py, mutation], weight: 10}
+  - {name: cached hit regression, stage: regression, command: [python, /grader/grader.py, regression], weight: 0}
+changed_lines_budget: 18
+tags: [asyncio, concurrency, cache]

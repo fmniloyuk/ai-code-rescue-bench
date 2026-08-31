@@ -1,0 +1,11 @@
+services:
+  api:
+    image: example/api:local
+    depends_on:
+      - db
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app

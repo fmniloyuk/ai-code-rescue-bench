@@ -1,0 +1,9 @@
+--- a/service.py
++++ b/service.py
+@@ -27,5 +27,5 @@ class Publisher(Protocol):
+ 
+ def create_order(order: Order, uow: UnitOfWork, publisher: Publisher) -> None:
+     uow.orders.add(order)  # type: ignore[attr-defined]
+-    publisher.publish(Event("order.created", {"order_id": order.id}))
++    uow.outbox.add(Event("order.created", {"order_id": order.id}))  # type: ignore[attr-defined]
+     uow.commit()

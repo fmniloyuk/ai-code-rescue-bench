@@ -1,0 +1,21 @@
+id: react-stale-effect
+title: React effect keeps rendering data for the previous user
+stack: [React, TypeScript]
+defect_category: incorrect React state lifecycle
+difficulty: hard
+security_implications: A stale effect can leave one user's profile visible after navigation to another user context.
+expected_behavior:
+  - The data-loading effect reruns when userId changes.
+  - The effect tracks the fetchUser callback dependency.
+  - The cleanup guard prevents late promises from updating an obsolete render.
+sandbox: {image: rescuebench/node:local, cpus: 0.5, memory: 320m, pids: 64, timeout_seconds: 30}
+checks:
+  - {name: typecheck, stage: build, command: [tsc, --noEmit], weight: 10}
+  - {name: visible dependency test, stage: public, command: [node, tests/public.mjs], weight: 20}
+  - {name: effect dependency AST, stage: hidden, command: [node, /grader/grader.mjs, hidden], weight: 35}
+  - {name: user context refresh, stage: security, command: [node, /grader/grader.mjs, security], weight: 15}
+  - {name: compiler quality, stage: quality, command: [tsc, --noEmit, --pretty, 'false'], weight: 10}
+  - {name: cleanup mutation, stage: mutation, command: [node, /grader/grader.mjs, mutation], weight: 10}
+  - {name: strictness regression, stage: regression, command: [node, /grader/grader.mjs, regression], weight: 0}
+changed_lines_budget: 6
+tags: [react, useEffect, stale-state]

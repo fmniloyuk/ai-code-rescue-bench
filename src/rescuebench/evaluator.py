@@ -3,13 +3,17 @@ from __future__ import annotations
 import time
 import uuid
 from pathlib import Path
+from typing import Literal
 
 from .artifacts import ArtifactStore
-from .models import CheckResult, EvaluationResult, PatchProposal
+from .models import CaseManifest, CheckResult, EvaluationResult, PatchProposal, Stage
 from .patches import apply_patch_in_sandbox, changed_lines, normalize_patch, validate_patch_paths
 from .sandbox import DockerSandbox, Mount
 from .scoring import score_attempt
 from .workspace import create_workspace
+
+Mode = Literal["human", "agent"]
+_HIDDEN_STAGES: set[Stage] = {"hidden", "security", "mutation", "regression"}
 
 
 class Evaluator:
@@ -18,13 +22,47 @@ class Evaluator:
         self.sandbox = sandbox or DockerSandbox()
         self.store = ArtifactStore(repo_root / "artifacts" / "runs")
 
+    def _run_checks(self, manifest: CaseManifest, case_dir: Path, workspace: Path) -> list[CheckResult]:
+        grader_dir = case_dir / "tests_hidden"
+        mounts = [Mount(workspace, "/workspace", read_only=False)]
+        if grader_dir.exists():
+            mounts.append(Mount(grader_dir, "/grader", read_only=True))
+        checks: list[CheckResult] = []
+        for check in manifest.checks:
+            outcome = self.sandbox.run(
+                manifest.sandbox,
+                check.command,
+                mounts,
+                image=check.image,
+                timeout_seconds=check.timeout_seconds,
+            )
+            stdout = outcome.stdout
+            stderr = outcome.stderr
+            if check.stage in _HIDDEN_STAGES:
+                stdout = "[hidden evaluator output redacted]" if stdout else ""
+                stderr = "[hidden evaluator output redacted]" if stderr else ""
+            checks.append(
+                CheckResult(
+                    name=check.name,
+                    stage=check.stage,
+                    passed=outcome.exit_code == 0,
+                    exit_code=outcome.exit_code,
+                    duration_ms=outcome.duration_ms,
+                    stdout=stdout,
+                    stderr=stderr,
+                    weight=check.weight,
+                    timed_out=outcome.timed_out,
+                )
+            )
+        return checks
+
     def evaluate(
         self,
-        manifest,
+        manifest: CaseManifest,
         case_dir: Path,
         patch: str,
         *,
-        mode: str,
+        mode: Mode,
         proposal: PatchProposal | None = None,
     ) -> EvaluationResult:
         started = time.perf_counter()
@@ -32,35 +70,16 @@ class Evaluator:
         validate_patch_paths(normalized)
         workspace = create_workspace(case_dir, normalized)
         try:
+            baseline_checks = self._run_checks(manifest, case_dir, workspace.root)
             apply_patch_in_sandbox(self.sandbox, manifest.sandbox, workspace.root, workspace.patch_file)
-            checks: list[CheckResult] = []
-            grader_dir = case_dir / "tests_hidden"
-            mounts = [Mount(workspace.root, "/workspace", read_only=False)]
-            if grader_dir.exists():
-                mounts.append(Mount(grader_dir, "/grader", read_only=True))
-            for check in manifest.checks:
-                outcome = self.sandbox.run(
-                    manifest.sandbox,
-                    check.command,
-                    mounts,
-                    image=check.image,
-                    timeout_seconds=check.timeout_seconds,
-                )
-                checks.append(
-                    CheckResult(
-                        name=check.name,
-                        stage=check.stage,
-                        passed=outcome.exit_code == 0,
-                        exit_code=outcome.exit_code,
-                        duration_ms=outcome.duration_ms,
-                        stdout=outcome.stdout,
-                        stderr=outcome.stderr,
-                        weight=check.weight,
-                        timed_out=outcome.timed_out,
-                    )
-                )
+            checks = self._run_checks(manifest, case_dir, workspace.root)
             line_count = changed_lines(normalized)
-            score = score_attempt(checks, line_count, manifest.changed_lines_budget)
+            score = score_attempt(
+                checks,
+                line_count,
+                manifest.changed_lines_budget,
+                baseline_checks=baseline_checks,
+            )
             run_id = f"{manifest.id}-{uuid.uuid4().hex[:12]}"
             runtime_ms = int((time.perf_counter() - started) * 1000)
             result = EvaluationResult(
@@ -72,6 +91,7 @@ class Evaluator:
                 prompt_id=proposal.prompt_id if proposal else None,
                 usage=proposal.usage if proposal else None,
                 patch=normalized,
+                baseline_checks=baseline_checks,
                 checks=checks,
                 score=score,
                 runtime_ms=runtime_ms,

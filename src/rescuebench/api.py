@@ -32,6 +32,18 @@ def cases() -> list[dict[str, object]]:
     return [summary.model_dump(mode="json") for summary in CATALOG.summaries()]
 
 
+@app.get("/api/cases/{case_id}")
+def case(case_id: str) -> dict[str, object]:
+    try:
+        manifest, case_dir = CATALOG.load(case_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="case not found") from exc
+    return {
+        "manifest": manifest.model_dump(mode="json"),
+        "issue": (case_dir / "issue.md").read_text(encoding="utf-8"),
+    }
+
+
 @app.get("/api/runs")
 def runs() -> list[dict[str, object]]:
     return [result.model_dump(mode="json") for result in STORE.list()]

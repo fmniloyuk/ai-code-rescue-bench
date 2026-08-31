@@ -96,6 +96,7 @@ class EvaluationResult(BaseModel):
     prompt_id: str | None = None
     usage: ProviderUsage | None = None
     patch: str
+    baseline_checks: list[CheckResult]
     checks: list[CheckResult]
     score: ScoreCard
     runtime_ms: int

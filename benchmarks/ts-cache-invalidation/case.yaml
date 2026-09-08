@@ -1,0 +1,21 @@
+id: ts-cache-invalidation
+title: User update leaves stale read-through cache entry
+stack: [Node.js, TypeScript, cache]
+defect_category: cache invalidation
+difficulty: hard
+security_implications: Stale authorization-relevant profile state can remain visible after an update.
+expected_behavior:
+  - A successful database update invalidates exactly that user's cache key.
+  - Cache invalidation occurs only after the database update succeeds.
+  - Subsequent reads fetch and cache the updated user.
+sandbox: {image: rescuebench/node:local, cpus: 0.75, memory: 384m, pids: 80, timeout_seconds: 30}
+checks:
+  - {name: typecheck, stage: build, command: [tsc, --noEmit], weight: 10}
+  - {name: visible stale-read test, stage: public, command: [tsx, tests/public.ts], weight: 20}
+  - {name: update ordering, stage: hidden, command: [tsx, /grader/grader.ts, hidden], weight: 35}
+  - {name: key isolation, stage: security, command: [tsx, /grader/grader.ts, security], weight: 15}
+  - {name: compiler quality, stage: quality, command: [tsc, --noEmit, --pretty, 'false'], weight: 10}
+  - {name: repeated updates, stage: mutation, command: [tsx, /grader/grader.ts, mutation], weight: 10}
+  - {name: read-through regression, stage: regression, command: [tsx, /grader/grader.ts, regression], weight: 0}
+changed_lines_budget: 8
+tags: [typescript, cache, consistency]

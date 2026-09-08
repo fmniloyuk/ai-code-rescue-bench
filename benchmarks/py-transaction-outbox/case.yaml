@@ -1,0 +1,21 @@
+id: py-transaction-outbox
+title: External event published before database commit
+stack: [Python, PostgreSQL, outbox]
+defect_category: transaction bug
+difficulty: hard
+security_implications: Premature side effects can create duplicate fulfillment or charging when the transaction later rolls back.
+expected_behavior:
+  - The order and its integration event are recorded in the same transaction boundary.
+  - The request path never publishes directly to the external broker.
+  - The event is recorded before commit and contains the created order id.
+sandbox: {image: rescuebench/python:local, cpus: 0.75, memory: 384m, pids: 64, timeout_seconds: 30}
+checks:
+  - {name: compile, stage: build, command: [python, -m, compileall, -q, .], weight: 10}
+  - {name: visible outbox contract, stage: public, command: [python, tests/test_public.py], weight: 20}
+  - {name: commit failure behavior, stage: hidden, command: [python, /grader/grader.py, hidden], weight: 35}
+  - {name: no direct publish, stage: security, command: [python, /grader/grader.py, security], weight: 15}
+  - {name: ruff, stage: quality, command: [ruff, check, .], weight: 10}
+  - {name: event ordering, stage: mutation, command: [python, /grader/grader.py, mutation], weight: 10}
+  - {name: payload regression, stage: regression, command: [python, /grader/grader.py, regression], weight: 0}
+changed_lines_budget: 8
+tags: [transactions, outbox, reliability]

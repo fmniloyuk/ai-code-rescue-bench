@@ -1,0 +1,14 @@
+--- a/src/settle.ts
++++ b/src/settle.ts
+@@ -3,10 +3,10 @@ export type Charge = (invoice: Invoice) => Promise<void>;
+ 
+ export async function settleAll(invoices: Invoice[], charge: Charge): Promise<string[]> {
+   const settled: string[] = [];
+-  invoices.forEach(async (invoice) => {
++  for (const invoice of invoices) {
+     await charge(invoice);
+     settled.push(invoice.id);
+-  });
++  }
+   return settled;
+ }

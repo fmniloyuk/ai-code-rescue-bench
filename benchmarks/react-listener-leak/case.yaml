@@ -1,0 +1,21 @@
+id: react-listener-leak
+title: React viewport hook removes a different listener function
+stack: [React, TypeScript]
+defect_category: memory/resource leak
+difficulty: hard
+security_implications: null
+expected_behavior:
+  - Cleanup removes the exact callback registered with addEventListener.
+  - Notifications stop after cleanup.
+  - Independent subscriptions do not interfere with one another.
+sandbox: {image: rescuebench/node:local, cpus: 0.5, memory: 320m, pids: 64, timeout_seconds: 30}
+checks:
+  - {name: typecheck, stage: build, command: [tsc, --noEmit], weight: 10}
+  - {name: visible cleanup behavior, stage: public, command: [tsx, tests/public.ts], weight: 20}
+  - {name: listener identity, stage: hidden, command: [tsx, /grader/grader.ts, hidden], weight: 35}
+  - {name: post-cleanup isolation, stage: security, command: [tsx, /grader/grader.ts, security], weight: 15}
+  - {name: compiler quality, stage: quality, command: [tsc, --noEmit, --pretty, 'false'], weight: 10}
+  - {name: multi-subscription mutation, stage: mutation, command: [tsx, /grader/grader.ts, mutation], weight: 10}
+  - {name: notification regression, stage: regression, command: [tsx, /grader/grader.ts, regression], weight: 0}
+changed_lines_budget: 12
+tags: [react, event-listener, cleanup]

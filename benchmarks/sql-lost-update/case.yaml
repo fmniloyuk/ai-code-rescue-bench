@@ -1,0 +1,21 @@
+id: sql-lost-update
+title: Debit flow performs read-modify-write and loses concurrent updates
+stack: [SQL, PostgreSQL]
+defect_category: transaction bug
+difficulty: expert
+security_implications: Concurrent debits can overspend an account or overwrite a newer balance.
+expected_behavior:
+  - Debit is expressed as one atomic UPDATE statement.
+  - The update subtracts amount_cents from the current balance in the database.
+  - Insufficient funds are rejected in the UPDATE predicate and the new balance is returned.
+sandbox: {image: rescuebench/config:local, cpus: 0.5, memory: 256m, pids: 48, timeout_seconds: 30}
+checks:
+  - {name: sql syntax, stage: build, command: [python, tests/public.py, parse], weight: 10}
+  - {name: visible atomicity contract, stage: public, command: [python, tests/public.py, contract], weight: 20}
+  - {name: hidden lost-update checks, stage: hidden, command: [python, /grader/grader.py, hidden], weight: 35}
+  - {name: overspend guard, stage: security, command: [python, /grader/grader.py, security], weight: 15}
+  - {name: postgres parse quality, stage: quality, command: [python, /grader/grader.py, quality], weight: 10}
+  - {name: stale-value mutation, stage: mutation, command: [python, /grader/grader.py, mutation], weight: 10}
+  - {name: returning regression, stage: regression, command: [python, /grader/grader.py, regression], weight: 0}
+changed_lines_budget: 16
+tags: [postgresql, concurrency, transactions]

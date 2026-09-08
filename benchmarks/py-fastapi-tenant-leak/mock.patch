@@ -1,0 +1,12 @@
+--- a/app.py
++++ b/app.py
+@@ -24,4 +24,8 @@ class InvoiceRepository:
+ 
+ 
+ def list_open_invoices(user: User, repo: InvoiceRepository) -> list[Invoice]:
+-    return [invoice for invoice in repo.invoices if invoice.status == "open"]
++    return [
++        invoice
++        for invoice in repo.invoices
++        if invoice.status == "open" and invoice.tenant_id == user.tenant_id
++    ]

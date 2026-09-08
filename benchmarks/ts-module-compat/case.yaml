@@ -1,0 +1,21 @@
+id: ts-module-compat
+title: TypeScript NodeNext configuration is internally incompatible
+stack: [Node.js, TypeScript, ESM]
+defect_category: dependency incompatibility
+difficulty: medium
+security_implications: null
+expected_behavior:
+  - TypeScript compiles the ESM package with NodeNext module semantics.
+  - package.json remains type module.
+  - Relative ESM imports retain explicit .js extensions.
+sandbox: {image: rescuebench/node:local, cpus: 0.5, memory: 320m, pids: 64, timeout_seconds: 30}
+checks:
+  - {name: compiler build, stage: build, command: [tsc, --noEmit], weight: 10}
+  - {name: visible config contract, stage: public, command: [node, tests/public.mjs], weight: 20}
+  - {name: node-next compile, stage: hidden, command: [node, /grader/grader.mjs, hidden], weight: 35}
+  - {name: esm boundary, stage: security, command: [node, /grader/grader.mjs, security], weight: 15}
+  - {name: compiler quality, stage: quality, command: [tsc, --noEmit, --pretty, 'false'], weight: 10}
+  - {name: import-resolution mutation, stage: mutation, command: [node, /grader/grader.mjs, mutation], weight: 10}
+  - {name: package metadata regression, stage: regression, command: [node, /grader/grader.mjs, regression], weight: 0}
+changed_lines_budget: 4
+tags: [typescript, esm, configuration]

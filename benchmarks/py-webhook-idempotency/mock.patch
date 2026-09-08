@@ -1,0 +1,9 @@
+--- a/processor.py
++++ b/processor.py
+@@ -20,5 +20,5 @@ class CreditGateway(Protocol):
+ def process_webhook(event: CreditEvent, store: EventStore, gateway: CreditGateway) -> None:
+     if store.seen(event.id):
+         return
+-    gateway.credit(event.account_id, event.amount_cents)
++    gateway.credit(event.account_id, event.amount_cents, idempotency_key=event.id)
+     store.mark_seen(event.id)

@@ -1,0 +1,10 @@
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -2,7 +2,7 @@
+   "compilerOptions": {
+     "target": "ES2022",
+-    "module": "CommonJS",
++    "module": "NodeNext",
+     "moduleResolution": "NodeNext",
+     "strict": true,
+     "noEmit": true

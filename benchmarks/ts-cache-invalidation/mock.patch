@@ -1,0 +1,10 @@
+--- a/src/userService.ts
++++ b/src/userService.ts
+@@ -26,6 +26,7 @@ export class UserService {
+ 
+   async updateUser(id: string, name: string): Promise<User> {
+     const updated = await this.db.update(id, name);
++    await this.cache.del(this.key(id));
+     return updated;
+   }
+ }

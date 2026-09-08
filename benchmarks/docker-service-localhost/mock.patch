@@ -1,0 +1,11 @@
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -2,7 +2,7 @@ services:
+   api:
+     image: example/api:local
+     environment:
+-      DATABASE_URL: postgresql://app:app@localhost:5432/app
++      DATABASE_URL: postgresql://app:app@db:5432/app
+     depends_on:
+       - db
+   db:

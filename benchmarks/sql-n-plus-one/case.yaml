@@ -1,0 +1,21 @@
+id: sql-n-plus-one
+title: Customer totals report issues one query per customer
+stack: [Python, SQL, PostgreSQL]
+defect_category: N+1 query
+difficulty: hard
+security_implications: null
+expected_behavior:
+  - The report uses at most one database query for any non-empty customer list.
+  - Customers without orders still receive a zero total.
+  - Customer ids are passed as parameters rather than interpolated into SQL.
+sandbox: {image: rescuebench/python:local, cpus: 0.75, memory: 320m, pids: 64, timeout_seconds: 30}
+checks:
+  - {name: compile, stage: build, command: [python, -m, compileall, -q, .], weight: 10}
+  - {name: visible query-count test, stage: public, command: [python, tests/test_public.py], weight: 20}
+  - {name: empty and sparse data, stage: hidden, command: [python, /grader/grader.py, hidden], weight: 35}
+  - {name: parameterization, stage: security, command: [python, /grader/grader.py, security], weight: 15}
+  - {name: ruff, stage: quality, command: [ruff, check, .], weight: 10}
+  - {name: large input query count, stage: mutation, command: [python, /grader/grader.py, mutation], weight: 10}
+  - {name: output-shape regression, stage: regression, command: [python, /grader/grader.py, regression], weight: 0}
+changed_lines_budget: 24
+tags: [postgresql, performance, n-plus-one]

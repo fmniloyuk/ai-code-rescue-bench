@@ -1,0 +1,21 @@
+id: py-resource-leak-stream
+title: File descriptor leaked when async stream sender fails
+stack: [Python, asyncio]
+defect_category: memory/resource leak
+difficulty: medium
+security_implications: null
+expected_behavior:
+  - The opened file is closed when streaming succeeds.
+  - The opened file is closed when the sender raises or the task is cancelled.
+  - Chunk ordering and contents are unchanged.
+sandbox: {image: rescuebench/python:local, cpus: 0.5, memory: 256m, pids: 48, timeout_seconds: 30}
+checks:
+  - {name: compile, stage: build, command: [python, -m, compileall, -q, .], weight: 10}
+  - {name: visible exception cleanup, stage: public, command: [python, tests/test_public.py], weight: 20}
+  - {name: cancellation cleanup, stage: hidden, command: [python, /grader/grader.py, hidden], weight: 35}
+  - {name: cleanup invariant, stage: security, command: [python, /grader/grader.py, security], weight: 15}
+  - {name: ruff, stage: quality, command: [ruff, check, .], weight: 10}
+  - {name: sender failure mutation, stage: mutation, command: [python, /grader/grader.py, mutation], weight: 10}
+  - {name: chunk regression, stage: regression, command: [python, /grader/grader.py, regression], weight: 0}
+changed_lines_budget: 12
+tags: [asyncio, cleanup, resources]

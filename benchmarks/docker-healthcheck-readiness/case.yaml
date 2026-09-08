@@ -1,0 +1,21 @@
+id: docker-healthcheck-readiness
+title: Compose dependency starts before PostgreSQL is ready
+stack: [Docker Compose, PostgreSQL, configuration]
+defect_category: Docker/network configuration
+difficulty: hard
+security_implications: null
+expected_behavior:
+  - PostgreSQL defines a real pg_isready healthcheck.
+  - API startup depends on db service_healthy rather than container start order.
+  - No fixed sleep is used as a readiness substitute.
+sandbox: {image: rescuebench/config:local, cpus: 0.5, memory: 256m, pids: 48, timeout_seconds: 30}
+checks:
+  - {name: yaml parse, stage: build, command: [python, tests/validate.py, parse], weight: 10}
+  - {name: visible readiness contract, stage: public, command: [python, tests/validate.py, contract], weight: 20}
+  - {name: healthcheck details, stage: hidden, command: [python, /grader/grader.py, hidden], weight: 35}
+  - {name: no sleep workaround, stage: security, command: [python, /grader/grader.py, security], weight: 15}
+  - {name: compose shape, stage: quality, command: [python, /grader/grader.py, quality], weight: 10}
+  - {name: readiness mutation, stage: mutation, command: [python, /grader/grader.py, mutation], weight: 10}
+  - {name: service regression, stage: regression, command: [python, /grader/grader.py, regression], weight: 0}
+changed_lines_budget: 20
+tags: [docker, healthcheck, startup]

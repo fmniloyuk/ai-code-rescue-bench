@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+node_modules/
+dist/
+coverage/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+artifacts/runs/*
+!artifacts/runs/.gitkeep
+.DS_Store

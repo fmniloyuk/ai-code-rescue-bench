@@ -1,0 +1,9 @@
+--- a/queries.sql
++++ b/queries.sql
+@@ -1,4 +1,5 @@
+ SELECT id, customer_id, total_cents
+ FROM invoices
+-WHERE status = 'open'
++WHERE tenant_id = :tenant_id
++  AND status = 'open'
+ ORDER BY id;

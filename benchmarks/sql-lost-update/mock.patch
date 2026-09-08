@@ -1,0 +1,16 @@
+--- a/debit.sql
++++ b/debit.sql
+@@ -1,9 +1,5 @@
+-BEGIN;
+-SELECT balance_cents
+-FROM accounts
+-WHERE id = :account_id;
+-
+ UPDATE accounts
+-SET balance_cents = :new_balance
+-WHERE id = :account_id;
+-COMMIT;
++SET balance_cents = balance_cents - :amount_cents
++WHERE id = :account_id
++  AND balance_cents >= :amount_cents
++RETURNING balance_cents;

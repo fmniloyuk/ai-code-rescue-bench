@@ -1,0 +1,21 @@
+id: sql-tenant-filter
+title: PostgreSQL report query omits tenant predicate
+stack: [SQL, PostgreSQL]
+defect_category: tenant data leakage
+difficulty: hard
+security_implications: The query can return invoice rows belonging to other tenants.
+expected_behavior:
+  - The query filters by exact tenant_id equality using a bind parameter.
+  - The existing open-status predicate remains intact.
+  - Prefix or wildcard tenant matching is not accepted.
+sandbox: {image: rescuebench/config:local, cpus: 0.5, memory: 256m, pids: 48, timeout_seconds: 30}
+checks:
+  - {name: sql parse, stage: build, command: [python, tests/public.py, parse], weight: 10}
+  - {name: visible tenant predicate, stage: public, command: [python, tests/public.py, contract], weight: 20}
+  - {name: hidden predicate analysis, stage: hidden, command: [python, /grader/grader.py, hidden], weight: 35}
+  - {name: parameterized isolation, stage: security, command: [python, /grader/grader.py, security], weight: 15}
+  - {name: postgres syntax quality, stage: quality, command: [python, /grader/grader.py, quality], weight: 10}
+  - {name: wildcard mutation, stage: mutation, command: [python, /grader/grader.py, mutation], weight: 10}
+  - {name: status regression, stage: regression, command: [python, /grader/grader.py, regression], weight: 0}
+changed_lines_budget: 4
+tags: [postgresql, authorization, sql]

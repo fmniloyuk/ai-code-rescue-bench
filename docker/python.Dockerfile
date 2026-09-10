@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.14-slim
 
 ARG RUFF_VERSION=0.16.5
 ARG MYPY_VERSION=2.3.1

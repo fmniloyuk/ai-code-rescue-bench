@@ -1,4 +1,4 @@
-FROM node:22-bookworm-slim
+FROM node:26-bookworm-slim
 
 ARG TYPESCRIPT_VERSION=5.9.2
 ARG ESLINT_VERSION=9.34.0

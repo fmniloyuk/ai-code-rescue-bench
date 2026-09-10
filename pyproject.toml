@@ -7,7 +7,7 @@ name = "ai-code-rescue-bench"
 version = "0.1.0"
 description = "Reproducible benchmark for deterministic evaluation of human and AI software repairs"
 requires-python = ">=3.13"
-dependencies = ["fastapi>=0.116,<1", "uvicorn>=0.35,<1", "pydantic>=2.11,<3", "pydantic-settings>=2.10,<3", "typer>=0.16,<1", "httpx>=0.28,<1", "PyYAML>=6.0,<7", "rich>=14,<15"]
+dependencies = ["fastapi>=0.116,<1", "uvicorn>=0.35,<1", "pydantic>=2.11,<3", "pydantic-settings>=2.10,<3", "typer>=0.16,<1", "httpx>=0.28,<1", "PyYAML>=6.0,<7", "rich>=14,<16"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.4,<10", "pytest-asyncio>=1.1,<2", "ruff>=0.12,<1", "mypy>=1.17,<2"]
